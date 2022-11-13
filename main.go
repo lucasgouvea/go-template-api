@@ -2,7 +2,6 @@ package main
 
 import (
 	Guns "go-api/internal/api/guns"
-	Redis "go-api/internal/redis"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -22,7 +21,8 @@ func main() {
 
 	Guns.Start(v1Router)
 
-	Redis.Setup()
+	Setup()
 
 	router.Run("localhost:8080")
+
 }

@@ -2,6 +2,8 @@ package guns
 
 import (
 	"fmt"
+	Redis "go-api/internal/redis"
+	Shared "go-api/internal/shared"
 	"net/http"
 	"time"
 
@@ -9,11 +11,13 @@ import (
 )
 
 func GetGuns(context *gin.Context) {
-	context.JSON(http.StatusOK, Guns)
+	hashes := []string{"guns:1", "guns:2", "guns:3", "guns:4"}
+	var guns = Redis.GetMany[IGun](hashes)
+	context.JSON(http.StatusOK, guns)
 }
 
 func PostGun(context *gin.Context) {
-	var newGun IGun
+	var newGun Shared.Model[IGun]
 
 	if err := context.BindJSON(&newGun); err != nil {
 		return
@@ -27,7 +31,7 @@ func GetGunById(context *gin.Context) {
 	id := context.Param("id")
 
 	for _, gun := range Guns {
-		if gun.Id == id {
+		if gun.Data.Id == id {
 			context.JSON(http.StatusOK, gun)
 			return
 		}
