@@ -1,0 +1,21 @@
+version: '3.1'
+services:
+  redis:
+    container_name: redis-container
+    hostname: redis
+    image: redis:7.0.5-alpine
+    platform: linux/amd64
+    restart: "no"
+    ports:
+      - "6379:6379"
+  postgres:
+    container_name: postgres-container
+    image: postgres:12
+    volumes:
+      - postgres-container:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
