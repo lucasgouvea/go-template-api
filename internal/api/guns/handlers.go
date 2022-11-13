@@ -32,7 +32,7 @@ func GetGunById(context *gin.Context) {
 
 	for _, gun := range Guns {
 		if gun.Data.Id == id {
-			context.JSON(http.StatusOK, gun)
+			context.JSON(http.StatusOK, gun.Data)
 			return
 		}
 	}
