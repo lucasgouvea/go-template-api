@@ -19,8 +19,8 @@ func GetGuns(context *gin.Context) {
 func PostGun(context *gin.Context) {
 	var newGun Shared.Model[IGun]
 
-	if err := context.BindJSON(&newGun); err != nil {
-		return
+	if error := context.BindJSON(&newGun.Data); error != nil {
+		Shared.HandleRequestError(error, context)
 	}
 
 	Guns = append(Guns, newGun)

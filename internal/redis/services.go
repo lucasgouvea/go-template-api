@@ -1,8 +1,6 @@
 package redis
 
 import (
-	"flag"
-
 	Shared "go-api/internal/shared"
 
 	"github.com/gomodule/redigo/redis"
@@ -50,8 +48,6 @@ func GetMany[T any](hashes []string) []T {
 func CreateMany[T any](models []Shared.Model[T]) {
 	var err error = nil
 
-	flag.Parse()
-
 	var connection = GetConnection()
 
 	for _, model := range models {
@@ -66,6 +62,18 @@ func CreateMany[T any](models []Shared.Model[T]) {
 		if err != nil {
 			panic(err)
 		}
+	}
+
+	connection.Close()
+}
+
+func CreateOne[T any](model Shared.Model[T]) {
+
+	var connection = GetConnection()
+	var args = redis.Args{}.Add(model.Hash).AddFlat(&model.Data)
+	var _, err = connection.Do("HMSET", args...)
+	if err != nil {
+		panic(err)
 	}
 
 	connection.Close()

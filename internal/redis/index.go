@@ -1,7 +1,6 @@
 package redis
 
 import (
-	"flag"
 	"os"
 	"time"
 
@@ -12,7 +11,6 @@ var INFINITE_TTL time.Duration = 0
 var pool *redis.Pool
 
 func NewPool() {
-	flag.Parse()
 
 	pool = &redis.Pool{
 		MaxIdle:     3,
