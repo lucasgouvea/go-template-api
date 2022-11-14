@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -17,8 +16,11 @@ type ErrorMessage struct {
 }
 
 func HandleRequestError(error error, context *gin.Context) {
+
+	var data []any
 	if error.Error() == "EOF" {
-		HandleResponse(context, http.StatusBadRequest, gin.H{"errors": "Unexpected JSON payload"})
+		data = append(data, gin.H{"errors": "Unexpected JSON payload"})
+		HandleErrorResponse(context, http.StatusBadRequest, data)
 		return
 	}
 
@@ -28,7 +30,8 @@ func HandleRequestError(error error, context *gin.Context) {
 		sb.WriteString("Should be of type ")
 		sb.WriteString(unmarshalTypeError.Type.Name())
 		var errorMessage = ErrorMessage{Field: unmarshalTypeError.Field, Message: sb.String()}
-		HandleResponse(context, http.StatusBadRequest, errorMessage)
+		data = append(data, errorMessage)
+		HandleErrorResponse(context, http.StatusBadRequest, data)
 		return
 	}
 
@@ -37,12 +40,14 @@ func HandleRequestError(error error, context *gin.Context) {
 		errorMessages := make([]ErrorMessage, len(validationErrors))
 		for i, fe := range validationErrors {
 			errorMessages[i] = ErrorMessage{Field: strings.ToLower(fe.Field()), Message: GetErrorMessage(fe)}
+			data = append(data, errorMessages[i])
 		}
-		HandleResponse(context, http.StatusBadRequest, errorMessages)
+		HandleErrorResponse(context, http.StatusBadRequest, data)
 		return
 	}
 
-	HandleResponse(context, http.StatusInternalServerError, error)
+	data = append(data, error)
+	HandleErrorResponse(context, http.StatusInternalServerError, data)
 }
 
 func GetErrorMessage(fe Validator.FieldError) string {
@@ -55,13 +60,4 @@ func GetErrorMessage(fe Validator.FieldError) string {
 		return "Should be greater than " + fe.Param()
 	}
 	return "Unknown error"
-}
-
-func HandleResponse(context *gin.Context, status int, data any) {
-	if os.Getenv("ENVIRONMENT") != "PRODUCTION" {
-		context.IndentedJSON(status, data)
-	} else {
-		context.JSON(status, data)
-	}
-
 }

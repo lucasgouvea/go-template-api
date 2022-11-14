@@ -1,16 +1,14 @@
 package redis
 
 import (
-	Shared "go-api/internal/shared"
-
 	"github.com/gomodule/redigo/redis"
 )
 
-func GetMany[T any](hashes []string) []T {
+func GetMany[T any](hashes []string) []Model[T] {
 	var err error
 	var reply interface{}
 	var values []interface{}
-	var models []T
+	var models []Model[T]
 	var connection = GetConnection()
 
 	for _, hash := range hashes {
@@ -36,7 +34,7 @@ func GetMany[T any](hashes []string) []T {
 				panic(err)
 			}
 
-			models = append(models, data)
+			models = append(models, Model[T]{Data: data, Hash: hashes[i]})
 		}
 	}
 
@@ -45,7 +43,35 @@ func GetMany[T any](hashes []string) []T {
 	return models
 }
 
-func CreateMany[T any](models []Shared.Model[T]) {
+func GetOne[T any](hash string) *Model[T] {
+	var data T
+	var values []interface{}
+	var connection = GetConnection()
+	var reply, err = connection.Do("HGETALL", hash)
+	connection.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	values, err = redis.Values(reply, err)
+	if err != nil {
+		panic(err)
+	}
+
+	if len(values) > 0 {
+		err = redis.ScanStruct(values, &data)
+		if err != nil {
+			panic(err)
+		}
+
+		var model = Model[T]{Data: data, Hash: hash}
+		return &model
+	}
+
+	return nil
+}
+
+func CreateMany[T any](models []Model[T]) {
 	var err error = nil
 
 	var connection = GetConnection()
@@ -67,7 +93,7 @@ func CreateMany[T any](models []Shared.Model[T]) {
 	connection.Close()
 }
 
-func CreateOne[T any](model Shared.Model[T]) {
+func CreateOne[T any](model Model[T]) {
 	var connection = GetConnection()
 	var args = redis.Args{}.Add(model.Hash).AddFlat(&model.Data)
 	var _, err = connection.Do("HMSET", args...)

@@ -10,6 +10,15 @@ import (
 var INFINITE_TTL time.Duration = 0
 var pool *redis.Pool
 
+type IBaseModel[T any] interface {
+	GetData() []T
+	GetHash() string
+}
+type Model[T any] struct {
+	Data T
+	Hash string
+}
+
 func NewPool() {
 
 	pool = &redis.Pool{

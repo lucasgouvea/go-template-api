@@ -1,11 +1,9 @@
 package guns
 
 import (
-	"fmt"
 	Redis "go-api/internal/redis"
 	Shared "go-api/internal/shared"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -13,43 +11,52 @@ import (
 
 func GetGuns(context *gin.Context) {
 	hashes := []string{"guns:1", "guns:2", "guns:3", "guns:4"}
-	var guns = Redis.GetMany[IGun](hashes)
-	Shared.HandleResponse(context, http.StatusOK, guns)
+	var gunsModels = Redis.GetMany[Gun](hashes)
+	data := []any{}
+
+	for _, gunModel := range gunsModels {
+		data = append(data, gunModel.Data)
+	}
+
+	Shared.HandleResponse(context, http.StatusOK, data)
 }
 
 func PostGun(context *gin.Context) {
-	var newGun Shared.Model[IGun]
+	var newGun Redis.Model[Gun]
+	data := []any{}
 
 	error := context.ShouldBindWith(&newGun.Data, binding.JSON)
+
+	data = append(data, newGun.Data)
 
 	if error != nil {
 		Shared.HandleRequestError(error, context)
 	} else {
-		Guns = append(Guns, newGun)
-		Shared.HandleResponse(context, http.StatusAccepted, newGun)
+		Shared.HandleResponse(context, http.StatusAccepted, data)
 	}
 
 }
 
 func GetGunById(context *gin.Context) {
+	data := []any{}
 	id := context.Param("id")
 
-	for _, gun := range Guns {
-		if gun.Data.Id == id {
-			Shared.HandleResponse(context, http.StatusOK, gun.Data)
-			return
-		}
+	var gun = Redis.GetOne[Gun]("guns:" + id)
+
+	if gun == nil {
+		Shared.HandleResponse(context, http.StatusNotFound, data)
+	} else {
+		data = append(data, gun.Data)
+		Shared.HandleResponse(context, http.StatusOK, data)
 	}
 
-	Shared.HandleResponse(context, http.StatusNotFound, gin.H{"message": "not found"})
 }
 
-func GetAsync(context *gin.Context) {
+/* func GetAsync(context *gin.Context) {
 	channel := make(chan int)
 	go doSomethingAsync(channel)
 	data := <-channel
 	Shared.HandleResponse(context, http.StatusOK, data)
-
 }
 
 func doSomethingAsync(channel chan int) chan int {
@@ -60,4 +67,4 @@ func doSomethingAsync(channel chan int) chan int {
 		fmt.Println("Done ...")
 	}()
 	return channel
-}
+} */
