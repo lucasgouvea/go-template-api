@@ -8,23 +8,27 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 )
 
 func GetGuns(context *gin.Context) {
 	hashes := []string{"guns:1", "guns:2", "guns:3", "guns:4"}
 	var guns = Redis.GetMany[IGun](hashes)
-	context.JSON(http.StatusOK, guns)
+	Shared.HandleResponse(context, http.StatusOK, guns)
 }
 
 func PostGun(context *gin.Context) {
 	var newGun Shared.Model[IGun]
 
-	if error := context.BindJSON(&newGun.Data); error != nil {
+	error := context.ShouldBindWith(&newGun.Data, binding.JSON)
+
+	if error != nil {
 		Shared.HandleRequestError(error, context)
+	} else {
+		Guns = append(Guns, newGun)
+		Shared.HandleResponse(context, http.StatusAccepted, newGun)
 	}
 
-	Guns = append(Guns, newGun)
-	context.IndentedJSON(http.StatusCreated, newGun)
 }
 
 func GetGunById(context *gin.Context) {
@@ -32,19 +36,19 @@ func GetGunById(context *gin.Context) {
 
 	for _, gun := range Guns {
 		if gun.Data.Id == id {
-			context.JSON(http.StatusOK, gun.Data)
+			Shared.HandleResponse(context, http.StatusOK, gun.Data)
 			return
 		}
 	}
 
-	context.JSON(http.StatusNotFound, gin.H{"message": "not found"})
+	Shared.HandleResponse(context, http.StatusNotFound, gin.H{"message": "not found"})
 }
 
 func GetAsync(context *gin.Context) {
 	channel := make(chan int)
 	go doSomethingAsync(channel)
 	data := <-channel
-	context.JSON(http.StatusOK, data)
+	Shared.HandleResponse(context, http.StatusOK, data)
 
 }
 

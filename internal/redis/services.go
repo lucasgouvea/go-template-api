@@ -68,7 +68,6 @@ func CreateMany[T any](models []Shared.Model[T]) {
 }
 
 func CreateOne[T any](model Shared.Model[T]) {
-
 	var connection = GetConnection()
 	var args = redis.Args{}.Add(model.Hash).AddFlat(&model.Data)
 	var _, err = connection.Do("HMSET", args...)
