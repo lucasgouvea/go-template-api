@@ -11,7 +11,7 @@ import (
 
 func GetGuns(context *gin.Context) {
 	hashes := []string{"guns:1", "guns:2", "guns:3", "guns:4"}
-	var gunsModels = Redis.GetMany[Gun](hashes)
+	var gunsModels = Redis.GetManyByHashes[Gun](hashes)
 	data := []any{}
 
 	for _, gunModel := range gunsModels {
@@ -22,18 +22,20 @@ func GetGuns(context *gin.Context) {
 }
 
 func PostGun(context *gin.Context) {
-	var newGun Redis.Model[Gun]
-	data := []any{}
+	var data []any
+	var gun Gun
+	var gunModel *Redis.Model[Gun]
 
-	error := context.ShouldBindWith(&newGun.Data, binding.JSON)
-
-	data = append(data, newGun.Data)
-
-	if error != nil {
+	if error := context.ShouldBindWith(&gun, binding.JSON); error != nil {
 		Shared.HandleRequestError(error, context)
-	} else {
-		Shared.HandleResponse(context, http.StatusAccepted, data)
+		return
 	}
+
+	gunModel = NewGunModel(gun)
+	gunModel = Redis.CreateOne(gunModel)
+	data = append(data, gunModel)
+
+	Shared.HandleResponse(context, http.StatusAccepted, data)
 
 }
 

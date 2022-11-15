@@ -39,7 +39,9 @@ func HandleRequestError(error error, context *gin.Context) {
 	if errors.As(error, &validationErrors) {
 		errorMessages := make([]ErrorMessage, len(validationErrors))
 		for i, fe := range validationErrors {
-			errorMessages[i] = ErrorMessage{Field: strings.ToLower(fe.Field()), Message: GetErrorMessage(fe)}
+			var field = fe.Field()
+			field = JoinCamelCaseWith_(field)
+			errorMessages[i] = ErrorMessage{Field: strings.ToLower(field), Message: GetErrorMessage(fe)}
 			data = append(data, errorMessages[i])
 		}
 		HandleErrorResponse(context, http.StatusBadRequest, data)

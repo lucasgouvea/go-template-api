@@ -4,10 +4,14 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
-func GetMany[T any](hashes []string) []Model[T] {
+/* func GetMany[T any]() []Model[T] {
+	var connection = GetConnection()
+} */
+
+func GetManyByHashes[T any](hashes []string) []Model[T] {
 	var err error
-	var reply interface{}
-	var values []interface{}
+	var reply any
+	var values []any
 	var models []Model[T]
 	var connection = GetConnection()
 
@@ -19,18 +23,16 @@ func GetMany[T any](hashes []string) []Model[T] {
 
 	for i := 0; i < len(hashes); i++ {
 		var data T
-		reply, err = connection.Receive()
-		if err != nil {
+		if reply, err = connection.Receive(); err != nil {
 			panic(err)
 		}
-		values, err = redis.Values(reply, err)
-		if err != nil {
+
+		if values, err = redis.Values(reply, err); err != nil {
 			panic(err)
 		}
 
 		if len(values) > 0 {
-			err = redis.ScanStruct(values, &data)
-			if err != nil {
+			if err = redis.ScanStruct(values, &data); err != nil {
 				panic(err)
 			}
 
@@ -93,13 +95,48 @@ func CreateMany[T any](models []Model[T]) {
 	connection.Close()
 }
 
-func CreateOne[T any](model Model[T]) {
+func CreateOne[T any](model *Model[T]) *Model[T] {
 	var connection = GetConnection()
-	var args = redis.Args{}.Add(model.Hash).AddFlat(&model.Data)
-	var _, err = connection.Do("HMSET", args...)
-	if err != nil {
+	var argsHMSET = redis.Args{}.Add(model.Hash).AddFlat(&model.Data)
+	var argsZADD = redis.Args{}.Add(model.SortedSet).Add(model.DefaultScore).Add(model.Hash)
+	var err error
+	var reply any
+	var values []any
+	var data T
+
+	if err = connection.Send("HMSET", argsHMSET...); err != nil {
 		panic(err)
 	}
 
+	if err = connection.Send("ZADD", argsZADD...); err != nil {
+		panic(err)
+	}
+
+	connection.Flush()
+
+	if reply, err = connection.Receive(); err != nil || reply != "OK" {
+		panic(err)
+	}
+
+	if reply, err = connection.Receive(); err != nil || reply != "OK" {
+		panic(err)
+	}
+
+	if values, err = redis.Values(reply, err); err != nil {
+		panic(err)
+	}
+
+	if len(values) > 0 {
+		err = redis.ScanStruct(values, &data)
+		if err != nil {
+			panic(err)
+		}
+
+		var model = Model[T]{Data: data, Hash: model.Hash}
+		return &model
+	}
+
 	connection.Close()
+
+	return nil
 }

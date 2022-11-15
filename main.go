@@ -1,14 +1,16 @@
 package main
 
 import (
-	Guns "go-api/internal/api/guns"
 	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+
+	Guns "go-api/internal/api/guns"
 )
 
 func main() {
+
 	err := godotenv.Load()
 
 	if err != nil {
