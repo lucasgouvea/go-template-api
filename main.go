@@ -3,10 +3,10 @@ package main
 import (
 	"log"
 
+	Guns "go-api/internal/api/guns"
+
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-
-	Guns "go-api/internal/api/guns"
 )
 
 func main() {

@@ -14,6 +14,7 @@ func GetManyByHashes[T any](hashes []string) []Model[T] {
 	var values []any
 	var models []Model[T]
 	var connection = GetConnection()
+	defer connection.Close()
 
 	for _, hash := range hashes {
 		connection.Send("HGETALL", hash)
@@ -36,21 +37,20 @@ func GetManyByHashes[T any](hashes []string) []Model[T] {
 				panic(err)
 			}
 
-			models = append(models, Model[T]{Data: data, Hash: hashes[i]})
+			models = append(models, Model[T]{Data: data})
 		}
 	}
-
-	connection.Close()
 
 	return models
 }
 
 func GetOne[T any](hash string) *Model[T] {
-	var data T
+	var model Model[T]
 	var values []interface{}
 	var connection = GetConnection()
+	defer connection.Close()
 	var reply, err = connection.Do("HGETALL", hash)
-	connection.Close()
+
 	if err != nil {
 		panic(err)
 	}
@@ -61,12 +61,12 @@ func GetOne[T any](hash string) *Model[T] {
 	}
 
 	if len(values) > 0 {
-		err = redis.ScanStruct(values, &data)
+		err = redis.ScanStruct(values, &model.Data)
 		if err != nil {
 			panic(err)
 		}
 
-		var model = Model[T]{Data: data, Hash: hash}
+		var model = Model[T]{Data: model.Data}
 		return &model
 	}
 
@@ -77,9 +77,10 @@ func CreateMany[T any](models []Model[T]) {
 	var err error = nil
 
 	var connection = GetConnection()
+	defer connection.Close()
 
 	for _, model := range models {
-		var args = redis.Args{}.Add(model.Hash).AddFlat(&model.Data)
+		var args = redis.Args{}.Add(model.Meta.Hash).AddFlat(&model.Data)
 		connection.Send("HMSET", args...)
 	}
 
@@ -92,17 +93,16 @@ func CreateMany[T any](models []Model[T]) {
 		}
 	}
 
-	connection.Close()
 }
 
-func CreateOne[T any](model *Model[T]) *Model[T] {
+func CreateOne[T any](model *Model[T]) {
 	var connection = GetConnection()
-	var argsHMSET = redis.Args{}.Add(model.Hash).AddFlat(&model.Data)
-	var argsZADD = redis.Args{}.Add(model.SortedSet).Add(model.DefaultScore).Add(model.Hash)
+	defer connection.Close()
+
+	var argsHMSET = redis.Args{}.Add(model.Meta.Hash).AddFlat(&model.Data)
+	var argsZADD = redis.Args{}.Add(model.Meta.SortedSet).Add(model.Meta.DefaultScore).Add(model.Meta.Hash)
 	var err error
 	var reply any
-	var values []any
-	var data T
 
 	if err = connection.Send("HMSET", argsHMSET...); err != nil {
 		panic(err)
@@ -118,25 +118,8 @@ func CreateOne[T any](model *Model[T]) *Model[T] {
 		panic(err)
 	}
 
-	if reply, err = connection.Receive(); err != nil || reply != "OK" {
+	if _, err = connection.Receive(); err != nil {
 		panic(err)
 	}
 
-	if values, err = redis.Values(reply, err); err != nil {
-		panic(err)
-	}
-
-	if len(values) > 0 {
-		err = redis.ScanStruct(values, &data)
-		if err != nil {
-			panic(err)
-		}
-
-		var model = Model[T]{Data: data, Hash: model.Hash}
-		return &model
-	}
-
-	connection.Close()
-
-	return nil
 }

@@ -5,13 +5,16 @@ import (
 	Shared "go-api/internal/shared"
 	"net/http"
 
+	GunModels "go-api/internal/api/guns/models"
+	GunSchemas "go-api/internal/api/guns/schemas"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 )
 
 func GetGuns(context *gin.Context) {
 	hashes := []string{"guns:1", "guns:2", "guns:3", "guns:4"}
-	var gunsModels = Redis.GetManyByHashes[Gun](hashes)
+	var gunsModels = Redis.GetManyByHashes[GunModels.Gun](hashes)
 	data := []any{}
 
 	for _, gunModel := range gunsModels {
@@ -23,32 +26,34 @@ func GetGuns(context *gin.Context) {
 
 func PostGun(context *gin.Context) {
 	var data []any
-	var gun Gun
-	var gunModel *Redis.Model[Gun]
+	var postSchema GunSchemas.GunPostSchema
+	var model *GunModels.GunModel
 
-	if error := context.ShouldBindWith(&gun, binding.JSON); error != nil {
+	if error := context.ShouldBindWith(&postSchema, binding.JSON); error != nil {
 		Shared.HandleRequestError(error, context)
 		return
 	}
 
-	gunModel = NewGunModel(gun)
-	gunModel = Redis.CreateOne(gunModel)
-	data = append(data, gunModel)
+	model = GunModels.NewGunModel(postSchema.GetGun())
 
+	Redis.CreateOne(model)
+	data = append(data, GunSchemas.NewGunResponseSchema(model))
 	Shared.HandleResponse(context, http.StatusAccepted, data)
 
 }
 
-func GetGunById(context *gin.Context) {
+func GetGunBySerialNumber(context *gin.Context) {
 	data := []any{}
-	id := context.Param("id")
+	serial_number := context.Param("serial_number")
 
-	var gun = Redis.GetOne[Gun]("guns:" + id)
+	var gunModel = Redis.GetOne[GunModels.Gun](GunModels.GunModelName + ":" + serial_number)
 
-	if gun == nil {
+	if gunModel == nil {
+
 		Shared.HandleResponse(context, http.StatusNotFound, data)
 	} else {
-		data = append(data, gun.Data)
+		var gunSchema = GunSchemas.NewGunResponseSchema(gunModel)
+		data = append(data, gunSchema)
 		Shared.HandleResponse(context, http.StatusOK, data)
 	}
 
