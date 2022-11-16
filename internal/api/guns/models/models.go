@@ -28,7 +28,6 @@ func NewGunModel(gun Gun) *GunModel {
 	model.Data.Price = gun.Price
 	model.Data.SerialNumber = gun.SerialNumber
 	model.Meta.DefaultScore = model.Data.CreatedAt
-	model.Data.Name = GunModelName
 	model.Meta.Hash = GetGunHash(gun.SerialNumber)
 	model.Meta.SortedSet = GunModelName
 	return model

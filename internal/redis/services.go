@@ -4,42 +4,25 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
-/* func GetMany[T any]() []Model[T] {
+func List[T any](modelName string) any {
+	const offset = 0
+	const limit = 10
+
 	var connection = GetConnection()
-} */
+
+	defer connection.Close()
+
+	hashes := zRange(connection, modelName, offset, limit)
+	models := hgetAll[T](connection, hashes)
+
+	return models
+}
 
 func GetManyByHashes[T any](hashes []string) []Model[T] {
-	var err error
-	var reply any
-	var values []any
-	var models []Model[T]
 	var connection = GetConnection()
 	defer connection.Close()
 
-	for _, hash := range hashes {
-		connection.Send("HGETALL", hash)
-	}
-
-	connection.Flush()
-
-	for i := 0; i < len(hashes); i++ {
-		var data T
-		if reply, err = connection.Receive(); err != nil {
-			panic(err)
-		}
-
-		if values, err = redis.Values(reply, err); err != nil {
-			panic(err)
-		}
-
-		if len(values) > 0 {
-			if err = redis.ScanStruct(values, &data); err != nil {
-				panic(err)
-			}
-
-			models = append(models, Model[T]{Data: data})
-		}
-	}
+	models := hgetAll[T](connection, hashes)
 
 	return models
 }
@@ -92,7 +75,6 @@ func CreateMany[T any](models []Model[T]) {
 			panic(err)
 		}
 	}
-
 }
 
 func CreateOne[T any](model *Model[T]) bool {
@@ -128,5 +110,4 @@ func CreateOne[T any](model *Model[T]) bool {
 	}
 
 	return true
-
 }

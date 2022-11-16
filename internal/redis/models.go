@@ -2,7 +2,6 @@ package redis
 
 type ModelMeta struct {
 	DefaultScore float64
-	Name         string
 	Hash         string
 	SortedSet    string
 }
