@@ -95,31 +95,38 @@ func CreateMany[T any](models []Model[T]) {
 
 }
 
-func CreateOne[T any](model *Model[T]) {
+func CreateOne[T any](model *Model[T]) bool {
 	var connection = GetConnection()
 	defer connection.Close()
 
 	var argsHMSET = redis.Args{}.Add(model.Meta.Hash).AddFlat(&model.Data)
-	var argsZADD = redis.Args{}.Add(model.Meta.SortedSet).Add(model.Meta.DefaultScore).Add(model.Meta.Hash)
+	var argsZADD = redis.Args{}.Add(model.Meta.SortedSet).Add("NX").Add(model.Meta.DefaultScore).Add(model.Meta.Hash)
 	var err error
 	var reply any
-
-	if err = connection.Send("HMSET", argsHMSET...); err != nil {
-		panic(err)
-	}
+	var alreadyExistsCode int64 = 0
 
 	if err = connection.Send("ZADD", argsZADD...); err != nil {
 		panic(err)
 	}
 
+	if err = connection.Send("HMSET", argsHMSET...); err != nil {
+		panic(err)
+	}
+
 	connection.Flush()
+
+	if reply, err = connection.Receive(); err != nil {
+		panic(err)
+	}
+
+	if reply == alreadyExistsCode {
+		return false
+	}
 
 	if reply, err = connection.Receive(); err != nil || reply != "OK" {
 		panic(err)
 	}
 
-	if _, err = connection.Receive(); err != nil {
-		panic(err)
-	}
+	return true
 
 }

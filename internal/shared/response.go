@@ -15,7 +15,7 @@ type Response struct {
 }
 
 type ErrorResponse struct {
-	Errors []any `json:"error"`
+	Errors []any `json:"errors"`
 }
 
 func sendResponse(context *gin.Context, status int, response any) {

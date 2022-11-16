@@ -10,10 +10,10 @@ type GunResponseSchema struct {
 }
 
 func NewGunResponseSchema(model *GunModels.GunModel) GunResponseSchema {
-	gunSchema := new(GunResponseSchema)
-	gunSchema.CreatedAt = model.Data.CreatedAt
-	gunSchema.Name = model.Data.Name
-	gunSchema.Price = model.Data.Price
-	gunSchema.SerialNumber = model.Data.SerialNumber
-	return *gunSchema
+	schema := new(GunResponseSchema)
+	schema.CreatedAt = model.Data.CreatedAt
+	schema.Name = model.Data.Name
+	schema.Price = model.Data.Price
+	schema.SerialNumber = model.Data.SerialNumber
+	return *schema
 }

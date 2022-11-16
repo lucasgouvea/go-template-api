@@ -17,15 +17,19 @@ type GunModel = Redis.Model[Gun]
 
 const GunModelName = "guns"
 
+func GetGunHash(serialNumber string) string {
+	return strings.Join([]string{GunModelName, ":", serialNumber}, "")
+}
+
 func NewGunModel(gun Gun) *GunModel {
-	gunModel := new(GunModel)
-	gunModel.Data.CreatedAt = float64(time.Now().Unix())
-	gunModel.Data.Name = gun.Name
-	gunModel.Data.Price = gun.Price
-	gunModel.Data.SerialNumber = gun.SerialNumber
-	gunModel.Meta.DefaultScore = gunModel.Data.CreatedAt
-	gunModel.Data.Name = GunModelName
-	gunModel.Meta.Hash = strings.Join([]string{GunModelName, ":", gun.SerialNumber}, "")
-	gunModel.Meta.SortedSet = GunModelName
-	return gunModel
+	model := new(GunModel)
+	model.Data.CreatedAt = float64(time.Now().Unix())
+	model.Data.Name = gun.Name
+	model.Data.Price = gun.Price
+	model.Data.SerialNumber = gun.SerialNumber
+	model.Meta.DefaultScore = model.Data.CreatedAt
+	model.Data.Name = GunModelName
+	model.Meta.Hash = GetGunHash(gun.SerialNumber)
+	model.Meta.SortedSet = GunModelName
+	return model
 }

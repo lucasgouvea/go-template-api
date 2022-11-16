@@ -17,8 +17,8 @@ func GetGuns(context *gin.Context) {
 	var gunsModels = Redis.GetManyByHashes[GunModels.Gun](hashes)
 	data := []any{}
 
-	for _, gunModel := range gunsModels {
-		data = append(data, gunModel.Data)
+	for _, model := range gunsModels {
+		data = append(data, model.Data)
 	}
 
 	Shared.HandleResponse(context, http.StatusOK, data)
@@ -26,17 +26,21 @@ func GetGuns(context *gin.Context) {
 
 func PostGun(context *gin.Context) {
 	var data []any
-	var postSchema GunSchemas.GunPostSchema
+	var schema GunSchemas.GunPostSchema
 	var model *GunModels.GunModel
+	var created bool
 
-	if error := context.ShouldBindWith(&postSchema, binding.JSON); error != nil {
+	if error := context.ShouldBindWith(&schema, binding.JSON); error != nil {
 		Shared.HandleRequestError(error, context)
 		return
 	}
 
-	model = GunModels.NewGunModel(postSchema.GetGun())
-
-	Redis.CreateOne(model)
+	model = GunModels.NewGunModel(schema.GetGun())
+	if created = Redis.CreateOne(model); !created {
+		data = append(data, "Already exists")
+		Shared.HandleErrorResponse(context, http.StatusConflict, data)
+		return
+	}
 	data = append(data, GunSchemas.NewGunResponseSchema(model))
 	Shared.HandleResponse(context, http.StatusAccepted, data)
 
@@ -46,14 +50,14 @@ func GetGunBySerialNumber(context *gin.Context) {
 	data := []any{}
 	serial_number := context.Param("serial_number")
 
-	var gunModel = Redis.GetOne[GunModels.Gun](GunModels.GunModelName + ":" + serial_number)
+	var hash = GunModels.GetGunHash(serial_number)
+	var model = Redis.GetOne[GunModels.Gun](hash)
 
-	if gunModel == nil {
-
+	if model == nil {
 		Shared.HandleResponse(context, http.StatusNotFound, data)
 	} else {
-		var gunSchema = GunSchemas.NewGunResponseSchema(gunModel)
-		data = append(data, gunSchema)
+		var schema = GunSchemas.NewGunResponseSchema(model)
+		data = append(data, schema)
 		Shared.HandleResponse(context, http.StatusOK, data)
 	}
 
