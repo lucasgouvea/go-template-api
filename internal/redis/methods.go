@@ -52,3 +52,36 @@ func zRange(connection redis.Conn, modelName string, offset int64, limit int64) 
 
 	return hashes
 }
+
+func create[T any](connection redis.Conn, model *Model[T]) bool {
+	var err error
+	var argsHMSET = redis.Args{}.Add(model.Meta.Hash).AddFlat(&model.Data)
+	var argsZADD = redis.Args{}.Add(model.Meta.SortedSet).Add("NX").Add(model.Meta.DefaultScore).Add(model.Meta.Hash)
+	var replies []any
+	var alreadyExistsCode int64 = 0
+	var commands = []RedisCommand{
+		{name: "MULTI"},
+		{name: "ZADD", args: argsZADD},
+		{name: "HMSET", args: argsHMSET},
+		{name: "EXEC"},
+	}
+
+	if err = sendMany(connection, commands); err != nil {
+		panic(err)
+	}
+
+	connection.Flush()
+
+	if replies, err = receiveAll(connection, len(commands)); err != nil {
+		panic(err)
+	}
+
+	var reply []any = replies[3].([]any)
+
+	if reply[0] != alreadyExistsCode && reply[1] == "OK" {
+		return true
+	}
+
+	return false
+
+}
