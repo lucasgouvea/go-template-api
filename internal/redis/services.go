@@ -1,17 +1,16 @@
 package redis
 
-func List[T any](modelName string) any {
+func List[T any](modelName string) *[]Model[T] {
 	const offset = 0
 	const limit = 10
 
 	var connection = GetConnection()
-
 	defer connection.Close()
 
 	hashes := zRange(connection, modelName, offset, limit)
 	models := hgetAll[T](connection, hashes)
 
-	return models
+	return &models
 }
 
 func GetManyByHashes[T any](hashes []string) []Model[T] {
@@ -33,7 +32,6 @@ func GetOne[T any](hash string) *Model[T] {
 	}
 
 	return &models[0]
-
 }
 
 func CreateOne[T any](model *Model[T]) bool {

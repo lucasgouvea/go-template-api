@@ -1,6 +1,8 @@
 package gun_schemas
 
-import GunModels "go-api/internal/api/guns/models"
+import (
+	GunModels "go-api/internal/api/guns/models"
+)
 
 type GunResponseSchema struct {
 	CreatedAt    float64 `json:"created_at"`
@@ -9,7 +11,7 @@ type GunResponseSchema struct {
 	SerialNumber string  `json:"serial_number"`
 }
 
-func NewGunResponseSchema(model *GunModels.GunModel) GunResponseSchema {
+func NewGunResponseSchema(model GunModels.GunModel) GunResponseSchema {
 	schema := new(GunResponseSchema)
 	schema.CreatedAt = model.Data.CreatedAt
 	schema.Name = model.Data.Name

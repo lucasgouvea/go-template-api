@@ -13,52 +13,51 @@ import (
 )
 
 func GetGuns(context *gin.Context) {
-	hashes := []string{"guns:1", "guns:2", "guns:3", "guns:4"}
-	var gunsModels = Redis.GetManyByHashes[GunModels.Gun](hashes)
-	data := []any{}
+	var schemas []GunSchemas.GunResponseSchema
+	var models = *Redis.List[GunModels.Gun](GunModels.GunModelName)
 
-	for _, model := range gunsModels {
-		data = append(data, model.Data)
+	for _, model := range models {
+		schemas = append(schemas, GunSchemas.NewGunResponseSchema(model))
 	}
 
-	Shared.HandleResponse(context, http.StatusOK, data)
+	Shared.HandleResponse(context, http.StatusOK, Shared.NewResponse(schemas))
 }
 
 func PostGun(context *gin.Context) {
 	var data []any
-	var schema GunSchemas.GunPostSchema
+	var schemas []GunSchemas.GunResponseSchema
+	var postSchema GunSchemas.GunPostSchema
 	var model *GunModels.GunModel
-	var created bool
 
-	if error := context.ShouldBindWith(&schema, binding.JSON); error != nil {
+	if error := context.ShouldBindWith(&postSchema, binding.JSON); error != nil {
 		Shared.HandleRequestError(error, context)
 		return
 	}
 
-	model = GunModels.NewGunModel(schema.GetGun())
-	if created = Redis.CreateOne(model); !created {
+	model = GunModels.NewGunModel(postSchema.GetGun())
+
+	if created := Redis.CreateOne(model); !created {
 		data = append(data, "Already exists")
 		Shared.HandleErrorResponse(context, http.StatusConflict, data)
 		return
 	}
-	data = append(data, GunSchemas.NewGunResponseSchema(model))
-	Shared.HandleResponse(context, http.StatusAccepted, data)
 
+	schemas = append(schemas, GunSchemas.NewGunResponseSchema(*model))
+	Shared.HandleResponse(context, http.StatusAccepted, Shared.NewResponse(schemas))
 }
 
 func GetGunBySerialNumber(context *gin.Context) {
-	data := []any{}
+	var schemas []GunSchemas.GunResponseSchema
 	serial_number := context.Param("serial_number")
 
 	var hash = GunModels.GetGunHash(serial_number)
 	var model = Redis.GetOne[GunModels.Gun](hash)
 
 	if model == nil {
-		Shared.HandleResponse(context, http.StatusNotFound, data)
+		Shared.HandleResponse(context, http.StatusNotFound, Shared.NewResponse(schemas))
 	} else {
-		var schema = GunSchemas.NewGunResponseSchema(model)
-		data = append(data, schema)
-		Shared.HandleResponse(context, http.StatusOK, data)
+		schemas = append(schemas, GunSchemas.NewGunResponseSchema(*model))
+		Shared.HandleResponse(context, http.StatusOK, Shared.NewResponse(schemas))
 	}
 
 }

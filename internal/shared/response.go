@@ -10,24 +10,33 @@ type IResponse[T any] interface {
 	GetData() []T
 }
 
-type Response struct {
-	Data []any `json:"data"`
+type Response[T any] struct {
+	Data []T `json:"data"`
+}
+
+func (response Response[T]) GetData() []T {
+	return response.Data
+}
+
+func NewResponse[T any](schemas []T) IResponse[T] {
+	response := new(Response[T])
+	response.Data = schemas
+	return *response
 }
 
 type ErrorResponse struct {
 	Errors []any `json:"errors"`
 }
 
-func sendResponse(context *gin.Context, status int, response any) {
+func sendResponse(context *gin.Context, status int, data any) {
 	if os.Getenv("ENVIRONMENT") != "PRODUCTION" {
-		context.IndentedJSON(status, response)
+		context.IndentedJSON(status, data)
 	} else {
-		context.JSON(status, response)
+		context.JSON(status, data)
 	}
 }
 
-func HandleResponse(context *gin.Context, status int, data []any) {
-	var response = Response{Data: data}
+func HandleResponse[T any](context *gin.Context, status int, response IResponse[T]) {
 	sendResponse(context, status, response)
 }
 
