@@ -6,6 +6,11 @@ import (
 	"unicode/utf8"
 )
 
+type Query struct {
+	Offset int `form:"offset"`
+	Limit  int `form:"limit"`
+}
+
 // Code brought from (and adapted)
 // https://github.com/fatih/camelcase
 func JoinCamelCaseWith_(src string) string {

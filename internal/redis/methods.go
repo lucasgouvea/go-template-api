@@ -36,7 +36,7 @@ func hgetAll[T any](connection redis.Conn, hashes []string) []Model[T] {
 	return models
 }
 
-func zRange(connection redis.Conn, modelName string, offset int64, limit int64) []string {
+func zRange(connection redis.Conn, modelName string, offset int, limit int) []string {
 	var reply interface{}
 	var hashes []string
 	var err error
@@ -83,5 +83,4 @@ func create[T any](connection redis.Conn, model *Model[T]) bool {
 	}
 
 	return false
-
 }

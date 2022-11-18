@@ -1,6 +1,8 @@
 package redis
 
-import "github.com/gomodule/redigo/redis"
+import (
+	"github.com/gomodule/redigo/redis"
+)
 
 type RedisCommand struct {
 	name string

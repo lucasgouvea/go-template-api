@@ -3,6 +3,7 @@ package guns
 import (
 	Redis "go-api/internal/redis"
 	Shared "go-api/internal/shared"
+	Response "go-api/internal/shared/response"
 	"net/http"
 
 	GunModels "go-api/internal/api/guns/models"
@@ -14,17 +15,23 @@ import (
 
 func GetGuns(context *gin.Context) {
 	var schemas []GunSchemas.GunResponseSchema
-	var models = *Redis.List[GunModels.Gun](GunModels.GunModelName)
+	var query Shared.Query
+
+	if err := context.BindQuery(&query); err != nil {
+		Shared.HandleRequestError(err, context)
+		return
+	}
+
+	var models = *Redis.List[GunModels.Gun](GunModels.GunModelName, query)
 
 	for _, model := range models {
 		schemas = append(schemas, GunSchemas.NewGunResponseSchema(model))
 	}
 
-	Shared.HandleResponse(context, http.StatusOK, Shared.NewResponse(schemas))
+	Response.Send(context, http.StatusOK, Response.New(schemas))
 }
 
 func PostGun(context *gin.Context) {
-	var data []any
 	var schemas []GunSchemas.GunResponseSchema
 	var postSchema GunSchemas.GunPostSchema
 	var model *GunModels.GunModel
@@ -37,13 +44,12 @@ func PostGun(context *gin.Context) {
 	model = GunModels.NewGunModel(postSchema.GetGun())
 
 	if created := Redis.CreateOne(model); !created {
-		data = append(data, "Already exists")
-		Shared.HandleErrorResponse(context, http.StatusConflict, data)
+		Response.SendError(context, http.StatusConflict, Response.NewError([]string{"Already exists"}))
 		return
 	}
 
 	schemas = append(schemas, GunSchemas.NewGunResponseSchema(*model))
-	Shared.HandleResponse(context, http.StatusAccepted, Shared.NewResponse(schemas))
+	Response.Send(context, http.StatusAccepted, Response.New(schemas))
 }
 
 func GetGunBySerialNumber(context *gin.Context) {
@@ -54,10 +60,10 @@ func GetGunBySerialNumber(context *gin.Context) {
 	var model = Redis.GetOne[GunModels.Gun](hash)
 
 	if model == nil {
-		Shared.HandleResponse(context, http.StatusNotFound, Shared.NewResponse(schemas))
+		Response.Send(context, http.StatusNotFound, Response.New(schemas))
 	} else {
 		schemas = append(schemas, GunSchemas.NewGunResponseSchema(*model))
-		Shared.HandleResponse(context, http.StatusOK, Shared.NewResponse(schemas))
+		Response.Send(context, http.StatusOK, Response.New(schemas))
 	}
 
 }
@@ -66,7 +72,7 @@ func GetGunBySerialNumber(context *gin.Context) {
 	channel := make(chan int)
 	go doSomethingAsync(channel)
 	data := <-channel
-	Shared.HandleResponse(context, http.StatusOK, data)
+	Response.Send(context, http.StatusOK, data)
 }
 
 func doSomethingAsync(channel chan int) chan int {
