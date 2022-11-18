@@ -17,13 +17,13 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
+	Setup()
+
 	router := gin.Default()
 
 	v1Router := router.Group("/v1")
 
 	Guns.Start(v1Router)
-
-	Setup()
 
 	router.Run("localhost:8080")
 

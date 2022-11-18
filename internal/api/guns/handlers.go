@@ -17,7 +17,7 @@ func GetGuns(context *gin.Context) {
 	var schemas []GunSchemas.GunResponseSchema
 	var query Shared.Query
 
-	if err := context.BindQuery(&query); err != nil {
+	if err := context.ShouldBindWith(&query, binding.Query); err != nil {
 		Shared.HandleRequestError(err, context)
 		return
 	}

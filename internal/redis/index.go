@@ -18,6 +18,7 @@ func NewPool() {
 		// Dial or DialContext must be set. When both are set, DialContext takes precedence over Dial.
 		Dial: func() (redis.Conn, error) { return redis.Dial("tcp", os.Getenv("REDIS_ADDRESS")) },
 	}
+
 }
 
 func GetConnection() redis.Conn {

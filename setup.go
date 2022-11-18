@@ -7,5 +7,10 @@ import (
 func Setup() {
 
 	Redis.NewPool()
+	connection := Redis.GetConnection()
+	connectionError := connection.Err()
+	if connectionError != nil {
+		panic(connectionError)
+	}
 
 }
