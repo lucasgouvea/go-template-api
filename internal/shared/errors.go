@@ -23,8 +23,19 @@ func handleQueryParamError(err error, context *gin.Context) bool {
 			expectedType = "bool"
 		}
 
-		descrition := "Invalid query value '" + numError.Num + "', expected type to be " + expectedType
-		Response.SendError(context, http.StatusBadRequest, Response.NewError([]string{descrition}))
+		description := "Invalid query value '" + numError.Num + "', expected type to be " + expectedType
+		Response.SendError(context, http.StatusBadRequest, Response.NewError([]string{description}))
+		return true
+	}
+
+	var validationErrors Validator.ValidationErrors
+	if errors.As(err, &validationErrors) {
+		validationError := validationErrors[0]
+		if validationError.Tag() == "min" {
+			description := "Invalid query value '" + validationError.Namespace() + "', expected value to be higher than or equal to " + validationError.Param()
+			Response.SendError(context, http.StatusBadRequest, Response.NewError([]string{description}))
+		}
+
 		return true
 	}
 	return false

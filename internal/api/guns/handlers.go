@@ -14,7 +14,7 @@ import (
 )
 
 func GetGuns(context *gin.Context) {
-	var schemas []GunSchemas.GunResponseSchema
+	var schemas = []GunSchemas.GunResponseSchema{}
 	var query Shared.Query
 
 	if err := context.ShouldBindWith(&query, binding.Query); err != nil {
@@ -53,7 +53,7 @@ func PostGun(context *gin.Context) {
 }
 
 func GetGunBySerialNumber(context *gin.Context) {
-	var schemas []GunSchemas.GunResponseSchema
+	schemas := []GunSchemas.GunResponseSchema{}
 	serial_number := context.Param("serial_number")
 
 	var hash = GunModels.GetGunHash(serial_number)

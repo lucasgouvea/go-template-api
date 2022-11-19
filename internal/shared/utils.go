@@ -7,8 +7,8 @@ import (
 )
 
 type Query struct {
-	Offset int `form:"offset"`
-	Limit  int `form:"limit"`
+	Offset int `form:"offset" binding:"min=0"`
+	Limit  int `form:"limit" binding:"min=1"`
 }
 
 // Code brought from (and adapted)
