@@ -1,7 +1,7 @@
 package gun_schemas
 
 import (
-	GunModels "go-api/internal/api/guns/models"
+	GunModels "go-template-api/internal/api/guns/models"
 )
 
 type GunResponseSchema struct {

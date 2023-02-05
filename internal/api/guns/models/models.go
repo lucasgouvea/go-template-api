@@ -1,7 +1,7 @@
 package gun_models
 
 import (
-	Redis "go-api/internal/redis"
+	Redis "go-template-api/internal/redis"
 	"strings"
 	"time"
 )

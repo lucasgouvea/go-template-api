@@ -1,7 +1,7 @@
 package main
 
 import (
-	Redis "go-api/internal/redis"
+	Redis "go-template-api/internal/redis"
 )
 
 func Setup() {

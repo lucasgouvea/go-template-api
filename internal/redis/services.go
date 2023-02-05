@@ -1,7 +1,7 @@
 package redis
 
 import (
-	Shared "go-api/internal/shared"
+	Shared "go-template-api/internal/shared"
 )
 
 func List[T any](modelName string, query Shared.Query) *[]Model[T] {

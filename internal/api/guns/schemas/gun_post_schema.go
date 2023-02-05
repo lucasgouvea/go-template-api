@@ -1,6 +1,6 @@
 package gun_schemas
 
-import GunModels "go-api/internal/api/guns/models"
+import GunModels "go-template-api/internal/api/guns/models"
 
 type GunPostSchema struct {
 	Name         string  `json:"name" binding:"required"`

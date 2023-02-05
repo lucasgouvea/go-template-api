@@ -1,13 +1,13 @@
 package guns
 
 import (
-	Redis "go-api/internal/redis"
-	Shared "go-api/internal/shared"
-	Response "go-api/internal/shared/response"
+	Redis "go-template-api/internal/redis"
+	Shared "go-template-api/internal/shared"
+	Response "go-template-api/internal/shared/response"
 	"net/http"
 
-	GunModels "go-api/internal/api/guns/models"
-	GunSchemas "go-api/internal/api/guns/schemas"
+	GunModels "go-template-api/internal/api/guns/models"
+	GunSchemas "go-template-api/internal/api/guns/schemas"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"

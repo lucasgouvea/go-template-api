@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	Response "go-api/internal/shared/response"
+	Response "go-template-api/internal/shared/response"
 
 	"github.com/gin-gonic/gin"
 	Validator "github.com/go-playground/validator/v10"

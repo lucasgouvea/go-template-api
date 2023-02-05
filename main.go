@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	Guns "go-api/internal/api/guns"
+	Guns "go-template-api/internal/api/guns"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
