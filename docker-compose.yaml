@@ -1,13 +1,21 @@
-version: '3.1'
+version: '3.7'
+
 services:
   postgres:
-    container_name: postgres-container
-    image: postgres:12
+    container_name: postgres_container
+    image: postgres:15.1
+    environment:
+      POSTGRES_DB: pg_database
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: pg_password
     volumes:
-      - postgres-container:/var/lib/postgresql/data
+      - postgres:/data/postgres
     ports:
       - 5432:5432
-    environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+
+networks:
+  postgres:
+
+
+volumes:
+  postgres:
