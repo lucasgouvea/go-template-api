@@ -3,7 +3,7 @@ package users
 import "time"
 
 type User struct {
-	ID        uint
-	CreatedAt time.Time
-	Name      string
+	ID        uint      `json:"id" `
+	CreatedAt time.Time `json:"created_at" `
+	Name      string    `json:"name" binding:"required"`
 }

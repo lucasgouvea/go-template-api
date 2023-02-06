@@ -27,7 +27,7 @@ func PostUser(c *gin.Context) {
 	user := User{}
 	if err := c.ShouldBindWith(&user, binding.JSON); err != nil {
 		httpError := Shared.GetHttpError(err)
-		c.JSON(http.StatusOK, httpError)
+		c.JSON(httpError.Status, httpError)
 	} else {
 		c.JSON(http.StatusOK, user)
 	}
