@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	Guns "go-template-api/internal/api/guns"
+	Users "go-template-api/internal/api/users"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -17,13 +17,11 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	Setup()
-
 	router := gin.Default()
 
 	v1Router := router.Group("/v1")
 
-	Guns.Start(v1Router)
+	Users.RegisterRoutes(v1Router)
 
 	router.Run("localhost:8080")
 
