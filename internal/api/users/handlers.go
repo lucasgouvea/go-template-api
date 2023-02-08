@@ -16,11 +16,22 @@ func RegisterRoutes(router *gin.RouterGroup) {
 }
 
 func GetUsers(ctx *gin.Context) {
-	users, err := listUsers()
-	if err != nil {
+	var err error
+	var params Shared.Params
+	var users []User
+
+	query := ctx.Request.URL.Query()
+
+	if params, err = Shared.ParseQuery(query); err != nil {
 		Shared.HandleErr(ctx, err)
 		return
 	}
+
+	if users, err = listUsers(params); err != nil {
+		Shared.HandleErr(ctx, err)
+		return
+	}
+
 	ctx.JSON(http.StatusOK, users)
 }
 

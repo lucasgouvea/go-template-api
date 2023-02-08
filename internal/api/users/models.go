@@ -9,7 +9,7 @@ import (
 type BaseSchema = any
 
 type User struct {
-	ID        uint64    `json:"id" gorm:"primarykey"`
+	ID        int       `json:"id" gorm:"primarykey"`
 	CreatedAt time.Time `json:"created_at"`
 	Name      string    `json:"name"`
 	Password  string    `json:"-"`

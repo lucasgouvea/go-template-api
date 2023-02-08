@@ -3,14 +3,15 @@ package users
 import (
 	Database "go-template-api/internal/database"
 	Errors "go-template-api/internal/errors"
+	Shared "go-template-api/internal/shared"
 
 	"gorm.io/gorm/clause"
 )
 
-func listUsers() ([]User, error) {
+func listUsers(params Shared.Params) ([]User, error) {
 	users := []User{}
 	db := Database.GetDB()
-	err := db.Select("id", "created_at", "name").Find(&users).Error
+	err := db.Limit(params.Limit).Offset(params.Offset).Select("id", "created_at", "name").Find(&users).Error
 	return users, err
 }
 

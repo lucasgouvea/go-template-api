@@ -23,7 +23,7 @@ func (u UserPostSchema) parse() *User {
 func (u UserPatchSchema) parse(_id string) (*User, error) {
 	user := User{}
 
-	id, err := strconv.ParseUint(_id, 10, 32)
+	id, err := strconv.Atoi(_id)
 	if err != nil {
 		return nil, err
 	}
