@@ -1,3 +1,5 @@
+run:
+	go run go-template-api
 # Migrations
 mig-up:
 	go run go-template-api migrations:up

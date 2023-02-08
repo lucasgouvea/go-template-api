@@ -6,11 +6,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type BaseSchema = any
+
 type User struct {
-	ID        uint      `json:"id" gorm:"primarykey"`
-	CreatedAt time.Time `json:"created_at" `
-	Name      string    `json:"name" binding:"required"`
-	Password  string    `json:"password" binding:"required"`
+	ID        uint64    `json:"id" gorm:"primarykey"`
+	CreatedAt time.Time `json:"created_at"`
+	Name      string    `json:"name"`
+	Password  string    `json:"-"`
 }
 
 type Tabler interface {

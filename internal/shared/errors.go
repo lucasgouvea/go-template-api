@@ -3,53 +3,53 @@ package shared
 import (
 	"encoding/json"
 	"errors"
+	Errors "go-template-api/internal/errors"
 	"net/http"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
 )
 
-type HttpError struct {
-	Status      int    `json:"status"`
-	Description string `json:"description"`
-}
+func GetHttpError(err error) *Errors.HttpErr {
 
-func GetHttpError(err error) *HttpError {
-
-	if httpError := parseInvalidJSONErr(err); httpError != nil {
-		return httpError
+	if HttpErr := parseInvalidJSONErr(err); HttpErr != nil {
+		return HttpErr
 	}
 
-	if httpError := parseInvalidPayloadErr(err); httpError != nil {
-		return httpError
+	if HttpErr := parseInvalidPayloadErr(err); HttpErr != nil {
+		return HttpErr
 	}
 
-	return &HttpError{Status: http.StatusInternalServerError, Description: "Internal error"}
+	if errors.Is(err, Errors.ResourceNotFoundErr) {
+		return &Errors.HttpErr{Status: http.StatusNotFound, Description: err.Error()}
+	}
+
+	return &Errors.HttpErr{Status: http.StatusInternalServerError, Description: "Internal error"}
 }
 
-func parseInvalidJSONErr(err error) *HttpError {
+func parseInvalidJSONErr(err error) *Errors.HttpErr {
 	var jsonSyntaxError *json.SyntaxError
 	if errors.As(err, &jsonSyntaxError) {
-		return &HttpError{Status: http.StatusBadRequest, Description: err.Error()}
+		return &Errors.HttpErr{Status: http.StatusBadRequest, Description: err.Error()}
 	}
 	if err.Error() == "EOF" {
 		description := "Unexpected JSON payload"
-		return &HttpError{Status: http.StatusBadRequest, Description: description}
+		return &Errors.HttpErr{Status: http.StatusBadRequest, Description: description}
 	}
 	return nil
 }
 
-func parseInvalidPayloadErr(err error) *HttpError {
+func parseInvalidPayloadErr(err error) *Errors.HttpErr {
 	var unmarshalTypeError *json.UnmarshalTypeError
 	if errors.As(err, &unmarshalTypeError) {
 		var description = "Payload field " + unmarshalTypeError.Field + "should be of type" + unmarshalTypeError.Type.Name()
-		return &HttpError{Status: http.StatusBadRequest, Description: description}
+		return &Errors.HttpErr{Status: http.StatusBadRequest, Description: description}
 	}
 
 	var validationErrors validator.ValidationErrors
 	if errors.As(err, &validationErrors) {
 		var description = "Payload field '" + strings.ToLower(validationErrors[0].Field()) + "' failed for tag '" + validationErrors[0].Tag() + "'"
-		return &HttpError{Status: http.StatusBadRequest, Description: description}
+		return &Errors.HttpErr{Status: http.StatusBadRequest, Description: description}
 	}
 	return nil
 }

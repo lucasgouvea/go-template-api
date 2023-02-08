@@ -1,7 +1,6 @@
 package users
 
 import (
-	"fmt"
 	"net/http"
 
 	Shared "go-template-api/internal/shared"
@@ -13,22 +12,56 @@ import (
 func RegisterRoutes(router *gin.RouterGroup) {
 	router.GET("/users", GetUsers)
 	router.POST("/users", PostUser)
+	router.PATCH("/users/:id", PatchUser)
 }
 
-func GetUsers(c *gin.Context) {
-	query := c.Request.URL.Query()
-	length := len(query)
-	fmt.Print(length)
-	users := []User{{Name: "admin"}, {Name: "user_1"}}
-	c.JSON(http.StatusOK, users)
-}
-
-func PostUser(c *gin.Context) {
-	user := User{}
-	if err := c.ShouldBindWith(&user, binding.JSON); err != nil {
-		httpError := Shared.GetHttpError(err)
-		c.JSON(httpError.Status, httpError)
-	} else {
-		c.JSON(http.StatusOK, user)
+func GetUsers(ctx *gin.Context) {
+	users, err := listUsers()
+	if err != nil {
+		Shared.HandleErr(ctx, err)
+		return
 	}
+	ctx.JSON(http.StatusOK, users)
+}
+
+func PostUser(ctx *gin.Context) {
+	schema := UserPostSchema{}
+	if err := ctx.ShouldBindWith(&schema, binding.JSON); err != nil {
+		Shared.HandleErr(ctx, err)
+		return
+	}
+
+	user := schema.parse()
+
+	if err := createUser(user); err != nil {
+		Shared.HandleErr(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, user)
+}
+
+func PatchUser(ctx *gin.Context) {
+	var user *User
+	var err error
+
+	schema := UserPatchSchema{}
+	id := ctx.Param("id")
+
+	if err := ctx.ShouldBindWith(&schema, binding.JSON); err != nil {
+		Shared.HandleErr(ctx, err)
+		return
+	}
+
+	if user, err = schema.parse(id); err != nil {
+		Shared.HandleErr(ctx, err)
+		return
+	}
+
+	if err := updateUser(user); err != nil {
+		Shared.HandleErr(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, user)
 }

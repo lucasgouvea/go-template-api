@@ -6,8 +6,6 @@ import (
 	"strings"
 	"time"
 
-	Shared "go-template-api/internal/shared"
-
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -15,18 +13,18 @@ import (
 
 var db *gorm.DB
 
-func Start() {
+func Start(dbUser string, dbPassword string, dbName string) {
 	var err error
 
 	var sb strings.Builder
 
 	sb.WriteString("host=localhost")
 	sb.WriteString(" user=")
-	sb.WriteString(Shared.GetEnvVars().DB_USER)
+	sb.WriteString(dbUser)
 	sb.WriteString(" password=")
-	sb.WriteString(Shared.GetEnvVars().DB_PASSWORD)
+	sb.WriteString(dbPassword)
 	sb.WriteString(" dbname=")
-	sb.WriteString(Shared.GetEnvVars().DB_NAME)
+	sb.WriteString(dbName)
 	sb.WriteString(" port=5432 sslmode=disable")
 
 	newLogger := logger.New(

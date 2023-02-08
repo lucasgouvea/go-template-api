@@ -23,7 +23,7 @@ func main() {
 		}
 	}
 
-	Database.Start()
+	Database.Start(Shared.GetEnvVars().DB_USER, Shared.GetEnvVars().DB_PASSWORD, Shared.GetEnvVars().DB_NAME)
 
 	if len(args) > 1 {
 		if args[1] == "migrations:up" {
