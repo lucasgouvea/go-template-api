@@ -48,7 +48,8 @@ func parseInvalidPayloadErr(err error) *Errors.HttpErr {
 
 	var validationErrors validator.ValidationErrors
 	if errors.As(err, &validationErrors) {
-		var description = "Payload field '" + strings.ToLower(validationErrors[0].Field()) + "' failed for tag '" + validationErrors[0].Tag() + "'"
+		field := strings.Join(SplitCamelCase(validationErrors[0].Field()), "_")
+		var description = "Payload field '" + strings.ToLower(field) + "' failed for tag '" + validationErrors[0].Tag() + "'"
 		return &Errors.HttpErr{Status: http.StatusBadRequest, Description: description}
 	}
 	return nil
