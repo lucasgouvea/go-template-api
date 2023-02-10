@@ -45,14 +45,13 @@ func startAPI() error {
 	v1Router := router.Group("/v1")
 
 	Users.RegisterRoutes(v1Router)
-	Drivers.RegisterRoutes(v1Router)
 
 	return router.Run("0.0.0.0:8081")
 }
 
 func migrate() error {
 	fmt.Println(" *** Running migrations ***")
-	models := []any{&Users.User{}, &Drivers.Driver{}}
+	models := []any{&Users.User{}}
 	return Database.Migrate(models)
 }
 

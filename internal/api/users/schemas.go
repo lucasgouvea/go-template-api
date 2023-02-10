@@ -9,8 +9,8 @@ type UserPostSchema struct {
 }
 
 type UserPatchSchema struct {
-	Name     string `json:"name"`
-	Password string `json:"password"`
+	Name     *string `json:"name" binding:"omitempty"`
+	Password *string `json:"password" binding:"omitempty"`
 }
 
 func (u UserPostSchema) parse() *User {
@@ -28,7 +28,14 @@ func (u UserPatchSchema) parse(_id string) (*User, error) {
 		return nil, err
 	}
 	user.ID = id
-	user.Name = u.Name
-	user.Password = u.Password
+
+	if u.Name != nil {
+		user.Name = *u.Name
+	}
+
+	if u.Password != nil {
+		user.Password = *u.Password
+	}
+
 	return &user, err
 }
