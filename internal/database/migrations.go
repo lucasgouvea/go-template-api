@@ -13,12 +13,13 @@ import (
 
 var db *gorm.DB
 
-func Start(dbUser string, dbPassword string, dbName string) {
+func Start(dbHost string, dbUser string, dbPassword string, dbName string) {
 	var err error
 
 	var sb strings.Builder
 
-	sb.WriteString("host=localhost")
+	sb.WriteString("host=")
+	sb.WriteString(dbHost)
 	sb.WriteString(" user=")
 	sb.WriteString(dbUser)
 	sb.WriteString(" password=")
@@ -53,17 +54,12 @@ func GetDB() *gorm.DB {
 	return db
 }
 
-func Migrate(models []any) {
+func Migrate(models []any) error {
 	db := GetDB()
 	for _, model := range models {
-		db.AutoMigrate(model)
+		if err := db.AutoMigrate(model); err != nil {
+			return err
+		}
 	}
-}
-
-func Drop(tables []string) {
-	db := GetDB()
-
-	for _, table := range tables {
-		db.Migrator().DropTable(table)
-	}
+	return nil
 }

@@ -1,6 +1,8 @@
 package shared
 
-import "os"
+import (
+	"os"
+)
 
 // Constants for environment
 type GoEnv struct {
@@ -10,6 +12,7 @@ type GoEnv struct {
 
 // Env var data
 type Env struct {
+	DB_HOST               string
 	DB_USER               string
 	DB_PASSWORD           string
 	DB_NAME               string
@@ -26,6 +29,7 @@ func getGoEnv() GoEnv {
 
 func GetEnvVars() Env {
 	return Env{
+		DB_HOST:               os.Getenv("DB_HOST"),
 		DB_USER:               os.Getenv("DB_USER"),
 		DB_PASSWORD:           os.Getenv("DB_PASSWORD"),
 		DB_NAME:               os.Getenv("DB_NAME"),

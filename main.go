@@ -23,40 +23,39 @@ func main() {
 		}
 	}
 
-	Database.Start(Shared.GetEnvVars().DB_USER, Shared.GetEnvVars().DB_PASSWORD, Shared.GetEnvVars().DB_NAME)
-
-	if len(args) > 1 {
-		if args[1] == "migrations:up" {
-			migrationsUp()
-		}
-		if args[1] == "migrations:down" {
-			migrationsDown()
-		}
-	} else {
-		startAPI()
+	Database.Start(Shared.GetEnvVars().DB_HOST, Shared.GetEnvVars().DB_USER, Shared.GetEnvVars().DB_PASSWORD, Shared.GetEnvVars().DB_NAME)
+	if err := migrate(); err != nil {
+		panic(err)
 	}
 
+	if len(args) > 1 {
+		if args[1] == "seed" {
+			seed()
+		}
+	} else {
+		if err := startAPI(); err != nil {
+			panic(err)
+		}
+	}
 }
 
-func startAPI() {
+func startAPI() error {
 	router := gin.Default()
 
 	v1Router := router.Group("/v1")
 
 	Users.RegisterRoutes(v1Router)
+	Drivers.RegisterRoutes(v1Router)
 
-	router.Run("localhost:8080")
+	return router.Run("0.0.0.0:8081")
 }
 
-func migrationsUp() {
-	fmt.Println(" *** Migrations Up ***")
-	models := []any{&Users.User{}}
-	Database.Migrate(models)
+func migrate() error {
+	fmt.Println(" *** Running migrations ***")
+	models := []any{&Users.User{}, &Drivers.Driver{}}
+	return Database.Migrate(models)
+}
+
+func seed() {
 	Users.Seed()
-}
-
-func migrationsDown() {
-	fmt.Println(" *** Migrations Down ***")
-	tables := []string{"users"}
-	Database.Drop(tables)
 }
